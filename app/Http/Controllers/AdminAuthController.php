@@ -6,9 +6,42 @@ use App\Models\User;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Models\Product;
 
 class AdminAuthController extends Controller
 {
+    public function dashboard(){
+        try {
+            if (!Auth::check()) {
+                return response()->json([
+                    'status' => 'error',
+                    'message' => 'Unauthenticated'
+                ], 401);
+            }
+
+            $stats = [
+                'users' => [
+                    'total' => User::count(),
+                    'latest' => User::latest()->take(5)->get()
+                ]
+            ];
+
+                $stats['products'] = [
+                    'total' => Product::count(),
+                    'latest' => Product::latest()->take(5)->get()
+                ];
+
+            return response()->json([
+                'status' => 'success',
+                'data' => $stats
+            ], 200);
+        } catch (Exception $e) {
+            return response()->json([
+                'status' => 'error',
+                'message' => $e->getMessage()
+            ], 400);
+        }
+    }
     public function register(Request $request)
     {
         try {
